@@ -20,45 +20,112 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
 
-        /* Splash Screen */
+        /* Splash Screen Overlay */
         #introOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg);
             z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 1s ease, visibility 1s;
         }
 
-        .ambient-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); filter: blur(120px); opacity: 0.15; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .ambient-glow { 
+            position: absolute; width: 600px; height: 600px; 
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%); 
+            filter: blur(120px); opacity: 0.15; z-index: -1; 
+            top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        }
+        
         .container { width: 100%; max-width: 500px; padding: 20px; z-index: 1; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-weight: 800; font-size: 32px; letter-spacing: -2px; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Initial Main Entrance Animation for Header & Search Box */
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            animation: buildUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .header h1 { 
+            font-weight: 800; font-size: 32px; letter-spacing: -2px; 
+            background: linear-gradient(to bottom, #fff, #888); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
 
-        .search-box { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 8px; border-radius: 24px; display: flex; gap: 10px; margin-bottom: 30px; }
+        .search-box { 
+            background: var(--glass); backdrop-filter: blur(20px); 
+            border: 1px solid var(--border); padding: 8px; border-radius: 24px; 
+            display: flex; gap: 10px; margin-bottom: 30px; 
+            transition: all 0.3s ease;
+            animation: buildUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+            opacity: 0; transform: translateY(20px);
+        }
+        .search-box:focus-within {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.1);
+        }
+        
         input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 12px 18px; font-size: 15px; }
         button { background: var(--accent); color: white; border: none; padding: 0 28px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
         
         .loader { display: none; text-align: center; margin: 30px 0; }
         .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
 
-        .result-card { background: var(--panel); border-radius: 32px; border: 1px solid var(--border); overflow: hidden; display: none; opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
-        .thumbnail-area { width: 100%; height: 220px; position: relative; background: #000; }
-        #gameThumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .risk-badge { position: absolute; top: 20px; right: 20px; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; backdrop-filter: blur(12px); background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        /* Premium Smooth Card Structural Building Animations */
+        .result-card { 
+            background: var(--panel); border-radius: 32px; 
+            border: 1px solid var(--border); overflow: hidden; 
+            display: none; opacity: 0; 
+            transform: translateY(30px) scale(0.98); 
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .thumbnail-area { width: 100%; height: 220px; position: relative; background: #000; overflow: hidden; }
+        #gameThumb { width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.1); transition: opacity 0.5s ease, transform 0.8s ease; }
+        
+        .risk-badge { 
+            position: absolute; top: 20px; right: 20px; padding: 8px 16px; 
+            border-radius: 12px; font-size: 12px; font-weight: 800; opacity: 0;
+            backdrop-filter: blur(12px); background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); 
+            transform: translateX(10px); transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s;
+        }
 
         .info-content { padding: 30px; }
+        
+        /* Staggered Inside Elements Initial Setup */
+        #displayTitle, .creator-row, .metric-box {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .metric-box { background: var(--glass); border: 1px solid var(--border); padding: 18px; border-radius: 20px; }
         .label { display: block; color: var(--text-dim); font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
         .value { font-size: 17px; font-weight: 700; }
 
+        /* Animation Timings & Keyframes */
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes buildUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
+<!-- Custom Identity Loading Splash Overlay -->
 <div id="introOverlay">
     <h2 style="letter-spacing:6px; font-weight:800; margin-bottom:10px; animation: pulse 2s infinite;">NEXUS</h2>
     <p style="color:var(--text-dim); font-size:12px; letter-spacing:2px; margin-bottom:40px;">DEVELOPED BY LYZY</p>
@@ -72,7 +139,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>NEXUS ANALYSIS</h1>
+        <h1>ROBLOX GAME CHECKER</h1>
         <p style="font-size: 12px; color: var(--text-dim);">Security Metadata Engine</p>
     </div>
 
@@ -86,6 +153,7 @@
         <p style="margin-top: 15px; font-size: 11px; color: var(--text-dim); letter-spacing: 2px;">DECRYPTING...</p>
     </div>
 
+    <!-- Main Dynamic Scanning Reveal Dashboard -->
     <div class="result-card" id="resultCard">
         <div class="thumbnail-area">
             <img id="gameThumb" src="">
@@ -94,25 +162,25 @@
 
         <div class="info-content">
             <h2 id="displayTitle" style="font-size:22px; font-weight:800; margin-bottom:8px;">---</h2>
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:25px;">
+            <div class="creator-row" style="display:flex; align-items:center; gap:10px; margin-bottom:25px;">
                 <img id="creatorImg" src="" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:#000;">
                 <span style="color:var(--text-dim); font-size:14px;">By <strong id="displayCreator" style="color:white">---</strong></span>
             </div>
 
             <div class="metrics-grid">
-                <div class="metric-box">
+                <div class="metric-box" id="box1">
                     <span class="label">Safety Score</span>
                     <div class="value" id="resScore">0%</div>
                 </div>
-                <div class="metric-box">
+                <div class="metric-box" id="box2">
                     <span class="label">Total Visits</span>
                     <div class="value" id="resVisits">0</div>
                 </div>
-                <div class="metric-box">
+                <div class="metric-box" id="box3">
                     <span class="label">Creator Age</span>
                     <div class="value" id="resAge">---</div>
                 </div>
-                <div class="metric-box">
+                <div class="metric-box" id="box4">
                     <span class="label">Status</span>
                     <div class="value" id="resStatus">---</div>
                 </div>
@@ -124,7 +192,7 @@
 <script>
     const BACKEND_URL = window.location.origin;
 
-    // Handle Intro
+    // Smooth entry sequence handling for intro splash screen
     window.addEventListener('load', () => {
         setTimeout(() => {
             const intro = document.getElementById('introOverlay');
@@ -145,22 +213,46 @@
         const cleanId = getCleanId(input.value.trim());
         if(!cleanId) return;
 
-        document.getElementById('resultCard').style.display = 'none';
+        // Reset elements before triggering animations
+        const card = document.getElementById('resultCard');
+        const img = document.getElementById('gameThumb');
+        const badge = document.getElementById('riskBadge');
+        const title = document.getElementById('displayTitle');
+        const creator = document.querySelector('.creator-row');
+        const boxes = [
+            document.getElementById('box1'),
+            document.getElementById('box2'),
+            document.getElementById('box3'),
+            document.getElementById('box4')
+        ];
+
+        card.style.display = 'none';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px) scale(0.98)';
+        img.style.opacity = '0';
+        img.style.transform = 'scale(1.1)';
+        badge.style.opacity = '0';
+        badge.style.transform = 'translateX(10px)';
+        
+        [title, creator, ...boxes].forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(15px)';
+        });
+
         document.getElementById('loader').style.display = 'block';
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/scan/${cleanId}`);
             const data = await response.json();
 
-            document.getElementById('gameThumb').src = data.thumbnail;
+            img.src = data.thumbnail;
             document.getElementById('creatorImg').src = data.creatorThumb;
-            document.getElementById('displayTitle').innerText = data.name;
+            title.innerText = data.name;
             document.getElementById('displayCreator').innerText = data.creator;
             document.getElementById('resScore').innerText = data.safetyScore + "%";
             document.getElementById('resVisits').innerText = data.visits;
             document.getElementById('resAge').innerText = data.age;
 
-            const badge = document.getElementById('riskBadge');
             let color = data.riskLevel === "LOW" ? "var(--success)" : (data.riskLevel === "MEDIUM" ? "var(--warning)" : "var(--danger)");
             
             badge.innerText = `${data.riskLevel} RISK`;
@@ -170,10 +262,41 @@
             document.getElementById('resStatus').style.color = color;
 
             document.getElementById('loader').style.display = 'none';
-            document.getElementById('resultCard').style.display = 'block';
+            card.style.display = 'block';
+            
+            // Staggered Building Animation Cascade Sequence
             setTimeout(() => {
-                document.getElementById('resultCard').style.opacity = '1';
-                document.getElementById('resultCard').style.transform = 'translateY(0)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0) scale(1)';
+                
+                setTimeout(() => {
+                    img.style.opacity = '0.8';
+                    img.style.transform = 'scale(1)';
+                }, 150);
+
+                setTimeout(() => {
+                    badge.style.opacity = '1';
+                    badge.style.transform = 'translateX(0)';
+                }, 300);
+
+                setTimeout(() => {
+                    title.style.opacity = '1';
+                    title.style.transform = 'translateY(0)';
+                }, 350);
+
+                setTimeout(() => {
+                    creator.style.opacity = '1';
+                    creator.style.transform = 'translateY(0)';
+                }, 400);
+
+                // Smoothly cascade structural metric boxes one by one
+                boxes.forEach((box, index) => {
+                    setTimeout(() => {
+                        box.style.opacity = '1';
+                        box.style.transform = 'translateY(0)';
+                    }, 450 + (index * 70));
+                });
+
             }, 50);
         } catch (err) {
             alert("Error fetching data.");
