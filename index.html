@@ -21,7 +21,7 @@
         .header { text-align: center; margin-bottom: 30px; animation: buildUp 0.8s ease forwards; }
         .header h1 { font-weight: 800; font-size: 32px; letter-spacing: -2px; }
 
-        /* Tabs */
+        /* Tabs Selection */
         .tabs { display: flex; background: var(--glass); padding: 5px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: 600; border-radius: 12px; transition: 0.3s; }
         .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
@@ -29,16 +29,29 @@
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.5s ease; }
 
-        /* Search & Results */
-        .search-box { background: var(--glass); border: 1px solid var(--border); padding: 8px; border-radius: 24px; display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 12px 18px; }
-        button.action { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 16px; font-weight: 700; cursor: pointer; }
+        /* Search & Dynamic Inputs */
+        .search-box { background: var(--glass); border: 1px solid var(--border); padding: 8px; border-radius: 24px; display: flex; gap: 10px; margin-bottom: 20px; transition: 0.3s ease; }
+        .search-box:focus-within { border-color: var(--accent); box-shadow: 0 10px 30px rgba(0, 122, 255, 0.1); }
+        input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 12px 18px; font-size: 15px; }
+        button.action { background: var(--accent); color: white; border: none; padding: 0 24px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button.action:hover { opacity: 0.9; transform: scale(1.02); }
 
-        .result-card { background: var(--panel); border-radius: 32px; border: 1px solid var(--border); overflow: hidden; padding: 30px; display: none; opacity: 0; transform: translateY(20px); transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Smooth Card Architecture */
+        .result-card { background: var(--panel); border-radius: 32px; border: 1px solid var(--border); overflow: hidden; padding: 30px; display: none; opacity: 0; transform: translateY(20px); transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 35px; }
         .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .box { background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 20px; }
         .label { font-size: 10px; color: var(--text-dim); font-weight: 800; text-transform: uppercase; }
         .val { font-size: 16px; font-weight: 700; margin-top: 5px; }
+
+        /* Glass FAQ Accordion Section */
+        .faq-section { margin-top: 20px; width: 100%; animation: buildUp 0.8s ease 0.2s forwards; }
+        .faq-item { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 12px; overflow: hidden; transition: 0.3s; }
+        .faq-question { padding: 18px 22px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
+        .faq-answer { padding: 0 22px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+        .faq-item.active { border-color: var(--accent); background: rgba(0, 122, 255, 0.04); }
+        .faq-item.active .faq-answer { padding: 0 22px 18px 22px; max-height: 200px; }
+        .faq-icon { transition: 0.3s; color: var(--accent); font-weight: 800; }
+        .faq-item.active .faq-icon { transform: rotate(45deg); }
 
         @keyframes buildUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -51,7 +64,7 @@
 <div class="container">
     <div class="header">
         <h1>NEXUS SCANNER</h1>
-        <p style="color: var(--text-dim); font-size: 12px;">Universal Integrity Audit</p>
+        <p style="color: var(--text-dim); font-size: 12px;">Universal Integrity Audit Engine</p>
     </div>
 
     <div class="tabs">
@@ -59,35 +72,60 @@
         <button class="tab-btn" onclick="switchTab('playerView', this)">Player Scan</button>
     </div>
 
+    <!-- GAME VIEW -->
     <div id="gameView" class="view active">
-        <div class="search-box"><input type="text" id="gIn" placeholder="Game ID"><button class="action" onclick="scanGame()">Scan</button></div>
+        <div class="search-box"><input type="text" id="gIn" placeholder="Enter Game ID or Link"><button class="action" onclick="scanGame()">Scan</button></div>
         <div id="gCard" class="result-card">
             <h2 id="gTitle">---</h2>
             <div class="metrics">
-                <div class="box"><p class="label">Safety</p><p id="gScore" class="val">---</p></div>
-                <div class="box"><p class="label">Risk</p><p id="gRisk" class="val">---</p></div>
+                <div class="box"><p class="label">Safety Score</p><p id="gScore" class="val">---</p></div>
+                <div class="box"><p class="label">Risk Level</p><p id="gRisk" class="val">---</p></div>
             </div>
         </div>
     </div>
 
+    <!-- PLAYER VIEW -->
     <div id="playerView" class="view">
-        <div class="search-box"><input type="text" id="pIn" placeholder="Username / UserID"><button class="action" onclick="scanPlayer()">Scan</button></div>
+        <div class="search-box"><input type="text" id="pIn" placeholder="Username or UserID"><button class="action" onclick="scanPlayer()">Scan</button></div>
         <div id="pCard" class="result-card">
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-                <img id="pImg" src="" style="width:60px; height:60px; border-radius:50%; background:var(--glass);">
+                <img id="pImg" src="" style="width:60px; height:60px; border-radius:50%; background:var(--glass); border:1px solid var(--border);">
                 <div><h2 id="pName" style="font-size:18px;">---</h2><p id="pDisplay" style="color:var(--text-dim); font-size:12px;">@---</p></div>
             </div>
             <div class="metrics">
-                <div class="box"><p class="label">Integrity</p><p id="pInt" class="val">---</p></div>
-                <div class="box"><p class="label">Friends</p><p id="pFriends" class="val">---</p></div>
-                <div class="box"><p class="label">Joined</p><p id="pJoined" class="val">---</p></div>
-                <div class="box"><p class="label">Verified</p><p id="pVer" class="val">---</p></div>
+                <div class="box"><p class="label">Integrity Status</p><p id="pInt" class="val">---</p></div>
+                <div class="box"><p class="label">Total Friends</p><p id="pFriends" class="val">---</p></div>
+                <div class="box"><p class="label">Account Created</p><p id="pJoined" class="val">---</p></div>
+                <div class="box"><p class="label">Verified Badge</p><p id="pVer" class="val">---</p></div>
             </div>
+        </div>
+    </div>
+
+    <!-- FAQ SECTION -->
+    <div class="faq-section">
+        <div style="margin-bottom: 15px; text-align: center;">
+            <h3 style="font-size: 11px; letter-spacing: 2px; color: var(--accent); font-weight: 800;">ENGINE DOCUMENTATION</h3>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">How does Player Scan evaluate accounts? <span class="faq-icon">+</span></div>
+            <div class="faq-answer">It cross-references the account's total active creation timeline against behavioral social markers like total friends, followers, and global verification configurations.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">What signals a "Highly Suspicious" status? <span class="faq-icon">+</span></div>
+            <div class="faq-answer">Accounts created within a critical 7-day threshold possessing entirely empty friend metrics or default configurations heavily mimic systemic bot distributions.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Does this look up hidden user details? <span class="faq-icon">+</span></div>
+            <div class="faq-answer">No. Nexus strictly reads public architecture points exposed through the standardized open infrastructure layer of the official Roblox Web APIs.</div>
         </div>
     </div>
 </div>
 
 <script>
+    // Tab Switches
     function switchTab(viewId, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -95,14 +133,23 @@
         btn.classList.add('active');
     }
 
+    // FAQ Accordion Handlers
+    document.querySelectorAll('.faq-question').forEach(q => {
+        q.addEventListener('click', () => {
+            q.parentElement.classList.toggle('active');
+        });
+    });
+
+    // API Handling for Player Lookups
     async function scanPlayer() {
-        const query = document.getElementById('pIn').value;
+        const query = document.getElementById('pIn').value.trim();
         const card = document.getElementById('pCard');
         if(!query) return;
 
         try {
             const res = await fetch(`/api/player/${query}`);
             const data = await res.json();
+            if(data.error) return alert(data.error);
             
             document.getElementById('pName').innerText = data.name;
             document.getElementById('pDisplay').innerText = "@" + data.displayName;
@@ -115,21 +162,31 @@
 
             card.style.display = 'block';
             setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, 50);
-        } catch(e) { alert("Player not found."); }
+        } catch(e) { alert("Player search failed."); }
     }
 
+    // API Handling for Game Lookups
     async function scanGame() {
-        const id = document.getElementById('gIn').value;
+        const id = document.getElementById('gIn').value.trim();
         const card = document.getElementById('gCard');
+        if(!id) return;
+
         try {
             const res = await fetch(`/api/scan/${id}`);
             const data = await res.json();
+            if(data.error) return alert(data.error);
+
             document.getElementById('gTitle').innerText = data.name;
             document.getElementById('gScore').innerText = data.safetyScore + "%";
             document.getElementById('gRisk').innerText = data.riskLevel;
+            
+            let color = data.riskLevel === "LOW" ? "var(--success)" : (data.riskLevel === "MEDIUM" ? "var(--warning)" : "var(--danger)");
+            document.getElementById('gScore').style.color = color;
+            document.getElementById('gRisk').style.color = color;
+
             card.style.display = 'block';
             setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, 50);
-        } catch(e) { alert("Game not found."); }
+        } catch(e) { alert("Game scan failed."); }
     }
 </script>
 </body>
