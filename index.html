@@ -103,6 +103,64 @@
         </div>
     </div>
 
+    <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('gameView', 'gameFaq', this)">Game Scan</button>
+    <button class="tab-btn" onclick="switchTab('playerView', 'playerFaq', this)">Player Scan</button>
+    <button class="tab-btn" onclick="switchTab('liveView', 'liveFaq', this)">Live Counter</button>
+</div>
+
+<div id="liveView" class="view">
+    <div class="search-box">
+        <input type="text" id="lIn" placeholder="Enter Game ID">
+        <button class="action" onclick="scanLive()">Connect</button>
+    </div>
+    <div id="lCard" class="result-card">
+        <div style="text-align:center; margin-bottom: 20px;">
+            <div style="display:inline-block; padding: 5px 12px; background: rgba(50, 215, 75, 0.1); color: var(--success); border-radius: 20px; font-size: 10px; font-weight: 800; margin-bottom: 10px;">● LIVE DATA</div>
+            <h2 id="lTitle">---</h2>
+        </div>
+        <div class="metrics">
+            <div class="box"><p class="label">Playing Now</p><p id="lPlaying" class="val" style="color: var(--success);">---</p></div>
+            <div class="box"><p class="label">Favorites</p><p id="lFavs" class="val">---</p></div>
+            <div class="box"><p class="label">Likes</p><p id="lLikes" class="val">---</p></div>
+            <div class="box"><p class="label">Rating</p><p id="lRate" class="val">---</p></div>
+        </div>
+    </div>
+</div>
+
+<div id="liveFaq" class="faq-wrapper">
+    <div class="faq-section">
+        <div class="faq-item">
+            <div class="faq-question">How frequent is the live data? <span class="faq-icon">+</span></div>
+            <div class="faq-answer">The data is fetched directly from Roblox's real-time clusters. While we don't auto-refresh to save bandwidth, clicking "Connect" again will grab the latest millisecond-accurate count.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add this to your existing scripts
+    async function scanLive() {
+        const id = document.getElementById('lIn').value.trim();
+        const card = document.getElementById('lCard');
+        if(!id) return;
+
+        try {
+            const res = await fetch(`/api/live/${id}`);
+            const data = await res.json();
+            if(data.error) return alert(data.error);
+
+            document.getElementById('lTitle').innerText = data.name;
+            document.getElementById('lPlaying').innerText = data.playing;
+            document.getElementById('lFavs').innerText = data.favorites;
+            document.getElementById('lLikes').innerText = data.likes;
+            document.getElementById('lRate').innerText = data.rating;
+
+            card.style.display = 'block';
+            setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, 50);
+        } catch(e) { alert("Live feed failed."); }
+    }
+</script>
+
     <div style="margin-top: 20px; margin-bottom: 15px; text-align: center;">
         <h3 style="font-size: 11px; letter-spacing: 2px; color: var(--accent); font-weight: 800;">ENGINE DOCUMENTATION</h3>
     </div>
