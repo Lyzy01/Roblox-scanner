@@ -12,10 +12,11 @@
             --accent: #007aff;
             --danger: #ff453a;
             --success: #32d74b;
+            --warning: #ffcc00;
             --text-main: #ffffff;
             --text-dim: #98989d;
             --border: rgba(255, 255, 255, 0.08);
-            --glass: rgba(255, 255, 255, 0.02);
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,14 +32,13 @@
             overflow-x: hidden;
         }
 
-        /* Animated Background Glow */
         .ambient-glow {
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: var(--accent);
-            filter: blur(150px);
-            opacity: 0.1;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            filter: blur(120px);
+            opacity: 0.15;
             z-index: -1;
             top: 50%;
             left: 50%;
@@ -52,26 +52,34 @@
             z-index: 1;
         }
 
-        /* Branding Header */
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-weight: 800; font-size: 26px; letter-spacing: -1.5px; margin-bottom: 8px; }
-        .header p { color: var(--text-dim); font-size: 14px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { 
+            font-weight: 800; 
+            font-size: 32px; 
+            letter-spacing: -2px; 
+            margin-bottom: 8px;
+            background: linear-gradient(to bottom, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { color: var(--text-dim); font-size: 14px; font-weight: 500; }
 
-        /* Search Interface */
         .search-box {
-            background: var(--panel);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             padding: 8px;
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             gap: 10px;
-            margin-bottom: 25px;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 30px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .search-box:focus-within {
             border-color: var(--accent);
-            box-shadow: 0 0 25px rgba(0, 122, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.2);
         }
 
         input {
@@ -88,26 +96,27 @@
             background: var(--accent);
             color: white;
             border: none;
-            padding: 0 24px;
-            border-radius: 14px;
+            padding: 0 28px;
+            border-radius: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
         }
 
-        button:hover { opacity: 0.9; transform: scale(1.02); }
+        button:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+        }
 
-        /* Loading Spinner */
         .loader {
             display: none;
             text-align: center;
-            margin: 20px 0;
-            animation: fadeIn 0.3s;
+            margin: 30px 0;
         }
 
         .spinner {
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             border: 3px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
@@ -115,80 +124,81 @@
             display: inline-block;
         }
 
-        /* Results Dashboard */
         .result-card {
             background: var(--panel);
-            border-radius: 30px;
+            border-radius: 32px;
             border: 1px solid var(--border);
             overflow: hidden;
             display: none;
-            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .thumbnail-area {
             width: 100%;
-            height: 200px;
-            background: #15151a;
+            height: 220px;
             position: relative;
+            background: #000;
         }
 
         #gameThumb {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-bottom: 1px solid var(--border);
+            opacity: 0.8;
         }
 
         .risk-badge {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 11px;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: 800;
-            backdrop-filter: blur(10px);
-            background: rgba(0,0,0,0.6);
-            letter-spacing: 0.5px;
+            backdrop-filter: blur(12px);
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .info-content { padding: 25px; }
-        .game-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-        .creator-tag { color: var(--text-dim); font-size: 14px; margin-bottom: 25px; }
+        .info-content { padding: 30px; }
+        .game-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+        .creator-tag { color: var(--text-dim); font-size: 14px; margin-bottom: 30px; }
 
         .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 16px;
         }
 
         .metric-box {
             background: var(--glass);
             border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 18px;
+            padding: 18px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-box:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.2);
         }
 
         .label {
             display: block;
             color: var(--text-dim);
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
         }
 
-        .value { font-size: 15px; font-weight: 600; }
+        .value { font-size: 17px; font-weight: 700; }
 
-        /* Keyframes */
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
     </style>
 </head>
 <body>
@@ -197,31 +207,29 @@
 
 <div class="container">
     <div class="header">
-        <h1>ROBLOX GAME CHECKER</h1>
-        <p>Integrity & Security Metadata Analysis</p>
+        <h1>NEXUS ANALYSIS</h1>
+        <p>Advanced Roblox Security & Metadata Engine</p>
     </div>
 
     <div class="search-box">
-        <input type="text" id="gameInput" placeholder="Enter Game ID or Universe ID">
+        <input type="text" id="gameInput" placeholder="Paste Roblox Link or Game ID">
         <button id="scanBtn">Analyze</button>
     </div>
 
     <div class="loader" id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 10px; font-size: 12px; color: var(--text-dim);">Analyzing DataNodes...</p>
+        <p style="margin-top: 15px; font-size: 13px; color: var(--text-dim); letter-spacing: 1px;">DECRYPTING METADATA...</p>
     </div>
 
     <div class="result-card" id="resultCard">
         <div class="thumbnail-area">
-            <img id="gameThumb" src="" alt="Thumbnail">
+            <img id="gameThumb" src="" alt="Game Thumbnail">
             <div id="riskBadge" class="risk-badge">SCANNING...</div>
         </div>
 
         <div class="info-content">
-            <h2 class="game-title" id="displayTitle">Game Name</h2>
-            <div class="creator-tag">
-                <span>By <strong id="displayCreator" style="color:white">Creator</strong></span>
-            </div>
+            <h2 class="game-title" id="displayTitle">---</h2>
+            <div class="creator-tag">By <strong id="displayCreator" style="color:white">---</strong></div>
 
             <div class="metrics-grid">
                 <div class="metric-box">
@@ -233,12 +241,12 @@
                     <div class="value" id="resVisits">0</div>
                 </div>
                 <div class="metric-box">
-                    <span class="label">Account Age</span>
-                    <div class="value" id="resAge">Unknown</div>
+                    <span class="label">Creator Age</span>
+                    <div class="value" id="resAge">---</div>
                 </div>
                 <div class="metric-box">
-                    <span class="label">Audit Status</span>
-                    <div class="value" id="resStatus">Verified</div>
+                    <span class="label">Trust Level</span>
+                    <div class="value" id="resStatus">---</div>
                 </div>
             </div>
         </div>
@@ -246,31 +254,42 @@
 </div>
 
 <script>
-    // Note: Replace this URL with your actual Render backend URL after deployment
-    const BACKEND_URL = "https://roblox-game-checker.onrender.com"; 
+    // Uses window.location.origin to automatically talk to your Render backend
+    const BACKEND_URL = window.location.origin;
 
     const scanBtn = document.getElementById('scanBtn');
     const input = document.getElementById('gameInput');
     const loader = document.getElementById('loader');
     const resultCard = document.getElementById('resultCard');
 
-    scanBtn.addEventListener('click', async () => {
-        const id = input.value.trim();
-        if(!id) return;
+    // Automatically extracts the ID from a full Roblox URL
+    function getCleanId(val) {
+        const match = val.match(/games\/(\d+)/);
+        return match ? match[1] : val.replace(/\D/g, '');
+    }
 
-        // Visual Transition
+    scanBtn.addEventListener('click', async () => {
+        const cleanId = getCleanId(input.value.trim());
+        
+        if(!cleanId) {
+            alert("Please provide a valid Roblox Link or ID.");
+            return;
+        }
+
+        // UI Reset
         scanBtn.disabled = true;
         resultCard.style.display = 'none';
+        resultCard.style.opacity = '0';
+        resultCard.style.transform = 'translateY(20px)';
         loader.style.display = 'block';
 
         try {
-            // Real fetch from your Node.js Backend
-            const response = await fetch(`${BACKEND_URL}/api/scan/${id}`);
+            const response = await fetch(`${BACKEND_URL}/api/scan/${cleanId}`);
             const data = await response.json();
 
             if(data.error) throw new Error(data.error);
 
-            // Populate UI with Backend Data
+            // Update UI
             document.getElementById('gameThumb').src = data.thumbnail;
             document.getElementById('displayTitle').innerText = data.name;
             document.getElementById('displayCreator').innerText = data.creator;
@@ -278,33 +297,39 @@
             document.getElementById('resVisits').innerText = data.visits;
             document.getElementById('resAge').innerText = data.age;
             
-            // Risk Level Logic
             const badge = document.getElementById('riskBadge');
             const scoreVal = document.getElementById('resScore');
-            
-            badge.innerText = data.riskLevel + " RISK";
-            
-            if(data.riskLevel === "LOW") {
-                badge.style.color = "var(--success)";
-                scoreVal.style.color = "var(--success)";
-                document.getElementById('resStatus').innerText = "Verified Safe";
-            } else {
-                badge.style.color = "var(--danger)";
-                scoreVal.style.color = "var(--danger)";
-                document.getElementById('resStatus').innerText = "Unverified/Caution";
-            }
+            const trustVal = document.getElementById('resStatus');
 
+            // Set dynamic colors
+            let color = "var(--success)";
+            if(data.riskLevel === "MEDIUM") color = "var(--warning)";
+            if(data.riskLevel === "HIGH") color = "var(--danger)";
+
+            badge.innerText = `${data.riskLevel} RISK`;
+            badge.style.color = color;
+            scoreVal.style.color = color;
+            trustVal.innerText = data.riskLevel === "LOW" ? "Verified" : "Unverified";
+            trustVal.style.color = color;
+
+            // Smooth Entrance
             loader.style.display = 'none';
             resultCard.style.display = 'block';
+            setTimeout(() => {
+                resultCard.style.opacity = '1';
+                resultCard.style.transform = 'translateY(0)';
+            }, 50);
 
         } catch (err) {
-            console.error(err);
-            alert("Error: Make sure your Render backend is running and the ID is correct.");
+            alert("Error: Check if the ID is a Universe ID. (API currently requires Universe IDs)");
             loader.style.display = 'none';
         } finally {
             scanBtn.disabled = false;
         }
     });
+
+    // Handle Enter Key
+    input.addEventListener('keypress', (e) => { if(e.key === 'Enter') scanBtn.click(); });
 </script>
 
 </body>
