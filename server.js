@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '/')));
 
+// --- FRONTEND ROUTE ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -16,6 +17,8 @@ app.get('/', (req, res) => {
 app.get('/api/scan/:id', async (req, res) => {
     try {
         let id = req.params.id;
+        
+        // 1. ID Conversion Logic
         try {
             const conversionReq = await axios.get(`https://apis.roblox.com/universes/v1/places/${id}/universe`);
             if (conversionReq.data && conversionReq.data.universeId) {
@@ -23,15 +26,22 @@ app.get('/api/scan/:id', async (req, res) => {
             }
         } catch (e) { console.log("ID is likely already a Universe ID."); }
 
-        const gameReq = await axios.get(`https://games.roblox.com/v1/games?universeIds=${id}`);
+        // 2. Fetch Game Info & Thumbnail in Parallel
+        const [gameReq, thumbReq] = await Promise.all([
+            axios.get(`https://games.roblox.com/v1/games?universeIds=${id}`),
+            axios.get(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${id}&size=768x432&format=Png`)
+        ]);
+
         const gameData = gameReq.data.data[0];
         if (!gameData) return res.status(404).json({ error: "Game not found." });
 
-        const thumbReq = await axios.get(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${id}&size=768x432&format=Png`);
-        const thumbUrl = thumbReq.data.data[0]?.thumbnails[0]?.imageUrl;
+        const thumbUrl = thumbReq.data.data[0]?.thumbnails[0]?.imageUrl || "";
 
+        // 3. Creator Data Logic
         let creatorAge = "Unknown";
         let isNewAccount = false;
+        let creatorThumb = "";
+
         if (gameData.creator.creatorType === "User") {
             const userReq = await axios.get(`https://users.roblox.com/v1/users/${gameData.creator.id}`);
             const createdDate = new Date(userReq.data.created);
@@ -39,13 +49,13 @@ app.get('/api/scan/:id', async (req, res) => {
             isNewAccount = createdDate > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         }
 
-        let creatorThumb = "";
         try {
             const type = gameData.creator.creatorType === "User" ? "users" : "groups";
             const cThumbReq = await axios.get(`https://thumbnails.roblox.com/v1/${type}/icons?itemIds=${gameData.creator.id}&size=150x150&format=Png`);
-            creatorThumb = cThumbReq.data.data[0]?.imageUrl;
-        } catch(e) { console.log("Creator thumb error"); }
+            creatorThumb = cThumbReq.data.data[0]?.imageUrl || "";
+        } catch(e) { console.log("Creator thumb fetch failed"); }
 
+        // 4. Scoring Engine
         let score = 100;
         if (isNewAccount && gameData.visits > 1000) score -= 50;
         if (gameData.visits < 500) score -= 20;
@@ -57,13 +67,15 @@ app.get('/api/scan/:id', async (req, res) => {
             name: gameData.name,
             creator: gameData.creator.name,
             creatorThumb: creatorThumb,
-            thumbnail: thumbUrl || "",
+            thumbnail: thumbUrl,
             visits: gameData.visits.toLocaleString(),
             age: creatorAge,
             safetyScore: score,
             riskLevel: riskLevel
         });
-    } catch (error) { res.status(500).json({ error: "Scan failed." }); }
+    } catch (error) { 
+        res.status(500).json({ error: "Scan failed." }); 
+    }
 });
 
 // --- PLAYER SCAN ENDPOINT ---
@@ -72,7 +84,6 @@ app.get('/api/player/:query', async (req, res) => {
         const query = req.params.query;
         let userId;
 
-        // Determine if input is ID or Username
         if (isNaN(query)) {
             const userSearch = await axios.post('https://users.roblox.com/v1/usernames/users', { usernames: [query], excludeBannedUsers: false });
             if (!userSearch.data.data.length) return res.status(404).json({ error: "User not found" });
@@ -81,18 +92,52 @@ app.get('/api/player/:query', async (req, res) => {
             userId = query;
         }
 
-        // --- LIVE COUNTER ENDPOINT ---
+        const [userInfo, userThumb, friendsCount] = await Promise.all([
+            axios.get(`https://users.roblox.com/v1/users/${userId}`),
+            axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`),
+            axios.get(`https://friends.roblox.com/v1/users/${userId}/friends/count`)
+        ]);
+
+        const createdDate = new Date(userInfo.data.created);
+        const accountAgeDays = Math.floor((new Date() - createdDate) / (1000 * 60 * 60 * 24));
+        
+        let status = "LIKELY HUMAN";
+        let color = "#32d74b";
+
+        if (accountAgeDays < 7 && friendsCount.data.count === 0) {
+            status = "HIGHLY SUSPICIOUS (POSSIBLE BOT)";
+            color = "#ff453a"; 
+        } else if (accountAgeDays < 30 || friendsCount.data.count === 0) {
+            status = "NEW ACCOUNT";
+            color = "#ffcc00"; 
+        }
+
+        res.json({
+            name: userInfo.data.name,
+            displayName: userInfo.data.displayName,
+            userId: userId,
+            joined: createdDate.toLocaleDateString(),
+            verified: userInfo.data.hasVerifiedBadge,
+            friends: friendsCount.data.count,
+            thumbnail: userThumb.data.data[0]?.imageUrl,
+            integrity: status,
+            integrityColor: color
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Player not found." });
+    }
+});
+
+// --- LIVE COUNTER ENDPOINT (FIXED & SEPARATED) ---
 app.get('/api/live/:id', async (req, res) => {
     try {
         let id = req.params.id;
 
-        // Step 1: Ensure we have a Universe ID
         try {
             const conv = await axios.get(`https://apis.roblox.com/universes/v1/places/${id}/universe`);
             if (conv.data && conv.data.universeId) id = conv.data.universeId;
         } catch (e) {}
 
-        // Step 2: Fetch Data in Parallel for speed
         const [gameReq, voteReq, favReq] = await Promise.all([
             axios.get(`https://games.roblox.com/v1/games?universeIds=${id}`),
             axios.get(`https://games.roblox.com/v1/games/votes?universeIds=${id}`),
@@ -104,7 +149,6 @@ app.get('/api/live/:id', async (req, res) => {
 
         if (!gameData) return res.status(404).json({ error: "Game not found" });
 
-        // Calculate Like Percentage
         const totalVotes = voteData.upVotes + voteData.downVotes;
         const rating = totalVotes > 0 ? Math.floor((voteData.upVotes / totalVotes) * 100) : 0;
 
@@ -119,43 +163,6 @@ app.get('/api/live/:id', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch live data." });
-    }
-});
-
-        // Fetch Detailed User Info
-        const userInfo = await axios.get(`https://users.roblox.com/v1/users/${userId}`);
-        const userThumb = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`);
-        const friendsCount = await axios.get(`https://friends.roblox.com/v1/users/${userId}/friends/count`);
-
-        const createdDate = new Date(userInfo.data.created);
-        const accountAgeDays = Math.floor((new Date() - createdDate) / (1000 * 60 * 60 * 24));
-        
-        // BOT DETECTION LOGIC
-        let status = "LIKELY HUMAN";
-        let color = "#32d74b"; // Success Green
-
-        if (accountAgeDays < 7 && friendsCount.data.count === 0) {
-            status = "HIGHLY SUSPICIOUS (POSSIBLE BOT)";
-            color = "#ff453a"; // Danger Red
-        } else if (accountAgeDays < 30 || friendsCount.data.count === 0) {
-            status = "NEW ACCOUNT";
-            color = "#ffcc00"; // Warning Yellow
-        }
-
-        res.json({
-            name: userInfo.data.name,
-            displayName: userInfo.data.displayName,
-            userId: userId,
-            joined: createdDate.toLocaleDateString(),
-            verified: userInfo.data.hasVerifiedBadge,
-            friends: friendsCount.data.count,
-            thumbnail: userThumb.data.data[0]?.imageUrl,
-            integrity: status,
-            integrityColor: color
-        });
-
-    } catch (error) {
-        res.status(500).json({ error: "Player not found." });
     }
 });
 
