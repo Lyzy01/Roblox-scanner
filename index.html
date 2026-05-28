@@ -20,216 +20,84 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+        /* Splash Screen */
+        #introOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg);
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1s ease, visibility 1s;
         }
 
-        .ambient-glow {
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-            filter: blur(120px);
-            opacity: 0.15;
-            z-index: -1;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            z-index: 1;
-        }
-
+        .ambient-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); filter: blur(120px); opacity: 0.15; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .container { width: 100%; max-width: 500px; padding: 20px; z-index: 1; }
         .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { 
-            font-weight: 800; 
-            font-size: 32px; 
-            letter-spacing: -2px; 
-            margin-bottom: 8px;
-            background: linear-gradient(to bottom, #fff, #888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header p { color: var(--text-dim); font-size: 14px; font-weight: 500; }
+        .header h1 { font-weight: 800; font-size: 32px; letter-spacing: -2px; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .search-box {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 8px;
-            border-radius: 24px;
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .search-box { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 8px; border-radius: 24px; display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 12px 18px; font-size: 15px; }
+        button { background: var(--accent); color: white; border: none; padding: 0 28px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        
+        .loader { display: none; text-align: center; margin: 30px 0; }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
 
-        .search-box:focus-within {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.2);
-        }
-
-        input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: white;
-            padding: 12px 18px;
-            font-size: 15px;
-        }
-
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 0 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            filter: brightness(1.2);
-            transform: scale(1.05);
-        }
-
-        .loader {
-            display: none;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-        }
-
-        .result-card {
-            background: var(--panel);
-            border-radius: 32px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            display: none;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .thumbnail-area {
-            width: 100%;
-            height: 220px;
-            position: relative;
-            background: #000;
-        }
-
-        #gameThumb {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.8;
-        }
-
-        .risk-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 800;
-            backdrop-filter: blur(12px);
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+        .result-card { background: var(--panel); border-radius: 32px; border: 1px solid var(--border); overflow: hidden; display: none; opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+        .thumbnail-area { width: 100%; height: 220px; position: relative; background: #000; }
+        #gameThumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .risk-badge { position: absolute; top: 20px; right: 20px; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; backdrop-filter: blur(12px); background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
 
         .info-content { padding: 30px; }
-        .game-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
-        .creator-tag { color: var(--text-dim); font-size: 14px; margin-bottom: 30px; }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .metric-box {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 18px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .metric-box:hover {
-            background: rgba(255, 255, 255, 0.06);
-            transform: translateY(-4px);
-            border-color: rgba(255,255,255,0.2);
-        }
-
-        .label {
-            display: block;
-            color: var(--text-dim);
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
-
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .metric-box { background: var(--glass); border: 1px solid var(--border); padding: 18px; border-radius: 20px; }
+        .label { display: block; color: var(--text-dim); font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
         .value { font-size: 17px; font-weight: 700; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
+
+<div id="introOverlay">
+    <h2 style="letter-spacing:6px; font-weight:800; margin-bottom:10px; animation: pulse 2s infinite;">NEXUS</h2>
+    <p style="color:var(--text-dim); font-size:12px; letter-spacing:2px; margin-bottom:40px;">DEVELOPED BY LYZY</p>
+    <div style="text-align:center; opacity:0; animation: fadeIn 1s forwards 1.2s;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Roblox_player_icon_black.svg" style="width:25px; filter:invert(1); margin-bottom:8px;">
+        <p style="font-size:9px; color:var(--accent); font-weight:800; letter-spacing:1px;">POWERED BY ROBLOX API</p>
+    </div>
+</div>
 
 <div class="ambient-glow"></div>
 
 <div class="container">
     <div class="header">
         <h1>NEXUS ANALYSIS</h1>
-        <p>Advanced Roblox Security & Metadata Engine</p>
+        <p style="font-size: 12px; color: var(--text-dim);">Security Metadata Engine</p>
     </div>
 
     <div class="search-box">
-        <input type="text" id="gameInput" placeholder="Paste Roblox Link or Game ID">
+        <input type="text" id="gameInput" placeholder="Paste Link or Game ID">
         <button id="scanBtn">Analyze</button>
     </div>
 
     <div class="loader" id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 15px; font-size: 13px; color: var(--text-dim); letter-spacing: 1px;">DECRYPTING METADATA...</p>
+        <p style="margin-top: 15px; font-size: 11px; color: var(--text-dim); letter-spacing: 2px;">DECRYPTING...</p>
     </div>
 
     <div class="result-card" id="resultCard">
         <div class="thumbnail-area">
-            <img id="gameThumb" src="" alt="Game Thumbnail">
+            <img id="gameThumb" src="">
             <div id="riskBadge" class="risk-badge">SCANNING...</div>
         </div>
 
         <div class="info-content">
-            <h2 class="game-title" id="displayTitle">---</h2>
-            <div class="creator-tag">By <strong id="displayCreator" style="color:white">---</strong></div>
+            <h2 id="displayTitle" style="font-size:22px; font-weight:800; margin-bottom:8px;">---</h2>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:25px;">
+                <img id="creatorImg" src="" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:#000;">
+                <span style="color:var(--text-dim); font-size:14px;">By <strong id="displayCreator" style="color:white">---</strong></span>
+            </div>
 
             <div class="metrics-grid">
                 <div class="metric-box">
@@ -245,7 +113,7 @@
                     <div class="value" id="resAge">---</div>
                 </div>
                 <div class="metric-box">
-                    <span class="label">Trust Level</span>
+                    <span class="label">Status</span>
                     <div class="value" id="resStatus">---</div>
                 </div>
             </div>
@@ -254,15 +122,20 @@
 </div>
 
 <script>
-    // Uses window.location.origin to automatically talk to your Render backend
     const BACKEND_URL = window.location.origin;
+
+    // Handle Intro
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const intro = document.getElementById('introOverlay');
+            intro.style.opacity = '0';
+            setTimeout(() => intro.style.display = 'none', 1000);
+        }, 2500);
+    });
 
     const scanBtn = document.getElementById('scanBtn');
     const input = document.getElementById('gameInput');
-    const loader = document.getElementById('loader');
-    const resultCard = document.getElementById('resultCard');
 
-    // Automatically extracts the ID from a full Roblox URL
     function getCleanId(val) {
         const match = val.match(/games\/(\d+)/);
         return match ? match[1] : val.replace(/\D/g, '');
@@ -270,67 +143,43 @@
 
     scanBtn.addEventListener('click', async () => {
         const cleanId = getCleanId(input.value.trim());
-        
-        if(!cleanId) {
-            alert("Please provide a valid Roblox Link or ID.");
-            return;
-        }
+        if(!cleanId) return;
 
-        // UI Reset
-        scanBtn.disabled = true;
-        resultCard.style.display = 'none';
-        resultCard.style.opacity = '0';
-        resultCard.style.transform = 'translateY(20px)';
-        loader.style.display = 'block';
+        document.getElementById('resultCard').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/scan/${cleanId}`);
             const data = await response.json();
 
-            if(data.error) throw new Error(data.error);
-
-            // Update UI
             document.getElementById('gameThumb').src = data.thumbnail;
+            document.getElementById('creatorImg').src = data.creatorThumb;
             document.getElementById('displayTitle').innerText = data.name;
             document.getElementById('displayCreator').innerText = data.creator;
             document.getElementById('resScore').innerText = data.safetyScore + "%";
             document.getElementById('resVisits').innerText = data.visits;
             document.getElementById('resAge').innerText = data.age;
-            
+
             const badge = document.getElementById('riskBadge');
-            const scoreVal = document.getElementById('resScore');
-            const trustVal = document.getElementById('resStatus');
-
-            // Set dynamic colors
-            let color = "var(--success)";
-            if(data.riskLevel === "MEDIUM") color = "var(--warning)";
-            if(data.riskLevel === "HIGH") color = "var(--danger)";
-
+            let color = data.riskLevel === "LOW" ? "var(--success)" : (data.riskLevel === "MEDIUM" ? "var(--warning)" : "var(--danger)");
+            
             badge.innerText = `${data.riskLevel} RISK`;
             badge.style.color = color;
-            scoreVal.style.color = color;
-            trustVal.innerText = data.riskLevel === "LOW" ? "Verified" : "Unverified";
-            trustVal.style.color = color;
+            document.getElementById('resScore').style.color = color;
+            document.getElementById('resStatus').innerText = data.riskLevel === "LOW" ? "Verified" : "Caution";
+            document.getElementById('resStatus').style.color = color;
 
-            // Smooth Entrance
-            loader.style.display = 'none';
-            resultCard.style.display = 'block';
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultCard').style.display = 'block';
             setTimeout(() => {
-                resultCard.style.opacity = '1';
-                resultCard.style.transform = 'translateY(0)';
+                document.getElementById('resultCard').style.opacity = '1';
+                document.getElementById('resultCard').style.transform = 'translateY(0)';
             }, 50);
-
         } catch (err) {
-            alert("Error: Check if the ID is a Universe ID. (API currently requires Universe IDs)");
-            loader.style.display = 'none';
-        } finally {
-            scanBtn.disabled = false;
+            alert("Error fetching data.");
+            document.getElementById('loader').style.display = 'none';
         }
     });
-
-    // Handle Enter Key
-    input.addEventListener('keypress', (e) => { if(e.key === 'Enter') scanBtn.click(); });
 </script>
-
 </body>
 </html>
