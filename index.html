@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Roblox Game Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050507;
+            --panel: #111116;
+            --accent: #007aff;
+            --danger: #ff453a;
+            --success: #32d74b;
+            --text-main: #ffffff;
+            --text-dim: #98989d;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.02);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Glow */
+        .ambient-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: var(--accent);
+            filter: blur(150px);
+            opacity: 0.1;
+            z-index: -1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        /* Branding Header */
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-weight: 800; font-size: 26px; letter-spacing: -1.5px; margin-bottom: 8px; }
+        .header p { color: var(--text-dim); font-size: 14px; }
+
+        /* Search Interface */
+        .search-box {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 20px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 25px rgba(0, 122, 255, 0.15);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            padding: 12px 18px;
+            font-size: 15px;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Loading Spinner */
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            animation: fadeIn 0.3s;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        /* Results Dashboard */
+        .result-card {
+            background: var(--panel);
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: none;
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .thumbnail-area {
+            width: 100%;
+            height: 200px;
+            background: #15151a;
+            position: relative;
+        }
+
+        #gameThumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .risk-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.6);
+            letter-spacing: 0.5px;
+        }
+
+        .info-content { padding: 25px; }
+        .game-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .creator-tag { color: var(--text-dim); font-size: 14px; margin-bottom: 25px; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-box {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 18px;
+        }
+
+        .label {
+            display: block;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .value { font-size: 15px; font-weight: 600; }
+
+        /* Keyframes */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div class="ambient-glow"></div>
+
+<div class="container">
+    <div class="header">
+        <h1>ROBLOX GAME CHECKER</h1>
+        <p>Integrity & Security Metadata Analysis</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="gameInput" placeholder="Enter Game ID or Universe ID">
+        <button id="scanBtn">Analyze</button>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 10px; font-size: 12px; color: var(--text-dim);">Analyzing DataNodes...</p>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="thumbnail-area">
+            <img id="gameThumb" src="" alt="Thumbnail">
+            <div id="riskBadge" class="risk-badge">SCANNING...</div>
+        </div>
+
+        <div class="info-content">
+            <h2 class="game-title" id="displayTitle">Game Name</h2>
+            <div class="creator-tag">
+                <span>By <strong id="displayCreator" style="color:white">Creator</strong></span>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <span class="label">Safety Score</span>
+                    <div class="value" id="resScore">0%</div>
+                </div>
+                <div class="metric-box">
+                    <span class="label">Total Visits</span>
+                    <div class="value" id="resVisits">0</div>
+                </div>
+                <div class="metric-box">
+                    <span class="label">Account Age</span>
+                    <div class="value" id="resAge">Unknown</div>
+                </div>
+                <div class="metric-box">
+                    <span class="label">Audit Status</span>
+                    <div class="value" id="resStatus">Verified</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Note: Replace this URL with your actual Render backend URL after deployment
+    const BACKEND_URL = "https://your-app-name.onrender.com"; 
+
+    const scanBtn = document.getElementById('scanBtn');
+    const input = document.getElementById('gameInput');
+    const loader = document.getElementById('loader');
+    const resultCard = document.getElementById('resultCard');
+
+    scanBtn.addEventListener('click', async () => {
+        const id = input.value.trim();
+        if(!id) return;
+
+        // Visual Transition
+        scanBtn.disabled = true;
+        resultCard.style.display = 'none';
+        loader.style.display = 'block';
+
+        try {
+            // Real fetch from your Node.js Backend
+            const response = await fetch(`${BACKEND_URL}/api/scan/${id}`);
+            const data = await response.json();
+
+            if(data.error) throw new Error(data.error);
+
+            // Populate UI with Backend Data
+            document.getElementById('gameThumb').src = data.thumbnail;
+            document.getElementById('displayTitle').innerText = data.name;
+            document.getElementById('displayCreator').innerText = data.creator;
+            document.getElementById('resScore').innerText = data.safetyScore + "%";
+            document.getElementById('resVisits').innerText = data.visits;
+            document.getElementById('resAge').innerText = data.age;
+            
+            // Risk Level Logic
+            const badge = document.getElementById('riskBadge');
+            const scoreVal = document.getElementById('resScore');
+            
+            badge.innerText = data.riskLevel + " RISK";
+            
+            if(data.riskLevel === "LOW") {
+                badge.style.color = "var(--success)";
+                scoreVal.style.color = "var(--success)";
+                document.getElementById('resStatus').innerText = "Verified Safe";
+            } else {
+                badge.style.color = "var(--danger)";
+                scoreVal.style.color = "var(--danger)";
+                document.getElementById('resStatus').innerText = "Unverified/Caution";
+            }
+
+            loader.style.display = 'none';
+            resultCard.style.display = 'block';
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: Make sure your Render backend is running and the ID is correct.");
+            loader.style.display = 'none';
+        } finally {
+            scanBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
