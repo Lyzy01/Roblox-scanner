@@ -81,6 +81,47 @@ app.get('/api/player/:query', async (req, res) => {
             userId = query;
         }
 
+        // --- LIVE COUNTER ENDPOINT ---
+app.get('/api/live/:id', async (req, res) => {
+    try {
+        let id = req.params.id;
+
+        // Step 1: Ensure we have a Universe ID
+        try {
+            const conv = await axios.get(`https://apis.roblox.com/universes/v1/places/${id}/universe`);
+            if (conv.data && conv.data.universeId) id = conv.data.universeId;
+        } catch (e) {}
+
+        // Step 2: Fetch Data in Parallel for speed
+        const [gameReq, voteReq, favReq] = await Promise.all([
+            axios.get(`https://games.roblox.com/v1/games?universeIds=${id}`),
+            axios.get(`https://games.roblox.com/v1/games/votes?universeIds=${id}`),
+            axios.get(`https://games.roblox.com/v1/games/${id}/favorites/count`)
+        ]);
+
+        const gameData = gameReq.data.data[0];
+        const voteData = voteReq.data.data[0];
+
+        if (!gameData) return res.status(404).json({ error: "Game not found" });
+
+        // Calculate Like Percentage
+        const totalVotes = voteData.upVotes + voteData.downVotes;
+        const rating = totalVotes > 0 ? Math.floor((voteData.upVotes / totalVotes) * 100) : 0;
+
+        res.json({
+            name: gameData.name,
+            playing: gameData.playing.toLocaleString(),
+            visits: gameData.visits.toLocaleString(),
+            likes: voteData.upVotes.toLocaleString(),
+            dislikes: voteData.downVotes.toLocaleString(),
+            rating: rating + "%",
+            favorites: favReq.data.favoritesCount.toLocaleString()
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch live data." });
+    }
+});
+
         // Fetch Detailed User Info
         const userInfo = await axios.get(`https://users.roblox.com/v1/users/${userId}`);
         const userThumb = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`);
