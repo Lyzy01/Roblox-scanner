@@ -12,43 +12,33 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// --- GAME SCAN ENDPOINT ---
 app.get('/api/scan/:id', async (req, res) => {
     try {
         let id = req.params.id;
-
-        // Step 1: Translate Place ID to Universe ID
         try {
             const conversionReq = await axios.get(`https://apis.roblox.com/universes/v1/places/${id}/universe`);
             if (conversionReq.data && conversionReq.data.universeId) {
                 id = conversionReq.data.universeId;
             }
-        } catch (e) {
-            console.log("ID is likely already a Universe ID.");
-        }
+        } catch (e) { console.log("ID is likely already a Universe ID."); }
 
-        // Step 2: Fetch Game Data
         const gameReq = await axios.get(`https://games.roblox.com/v1/games?universeIds=${id}`);
         const gameData = gameReq.data.data[0];
-
         if (!gameData) return res.status(404).json({ error: "Game not found." });
 
-        // Step 3: Fetch Game Thumbnail
         const thumbReq = await axios.get(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${id}&size=768x432&format=Png`);
         const thumbUrl = thumbReq.data.data[0]?.thumbnails[0]?.imageUrl;
 
-        // Step 4: Fetch Creator Info & Account Age
         let creatorAge = "Unknown";
         let isNewAccount = false;
         if (gameData.creator.creatorType === "User") {
             const userReq = await axios.get(`https://users.roblox.com/v1/users/${gameData.creator.id}`);
             const createdDate = new Date(userReq.data.created);
             creatorAge = createdDate.toLocaleDateString();
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            isNewAccount = createdDate > thirtyDaysAgo;
+            isNewAccount = createdDate > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         }
 
-        // Step 5: Fetch Creator Icon (User or Group)
         let creatorThumb = "";
         try {
             const type = gameData.creator.creatorType === "User" ? "users" : "groups";
@@ -56,14 +46,12 @@ app.get('/api/scan/:id', async (req, res) => {
             creatorThumb = cThumbReq.data.data[0]?.imageUrl;
         } catch(e) { console.log("Creator thumb error"); }
 
-        // Step 6: Risk Scoring
         let score = 100;
-        let riskLevel = "LOW";
         if (isNewAccount && gameData.visits > 1000) score -= 50;
         if (gameData.visits < 500) score -= 20;
         if (gameData.copyingAllowed) score -= 10;
-        if (score < 60) riskLevel = "HIGH";
-        else if (score < 85) riskLevel = "MEDIUM";
+        
+        let riskLevel = score < 60 ? "HIGH" : (score < 85 ? "MEDIUM" : "LOW");
 
         res.json({
             name: gameData.name,
@@ -75,11 +63,60 @@ app.get('/api/scan/:id', async (req, res) => {
             safetyScore: score,
             riskLevel: riskLevel
         });
+    } catch (error) { res.status(500).json({ error: "Scan failed." }); }
+});
+
+// --- PLAYER SCAN ENDPOINT ---
+app.get('/api/player/:query', async (req, res) => {
+    try {
+        const query = req.params.query;
+        let userId;
+
+        // Determine if input is ID or Username
+        if (isNaN(query)) {
+            const userSearch = await axios.post('https://users.roblox.com/v1/usernames/users', { usernames: [query], excludeBannedUsers: false });
+            if (!userSearch.data.data.length) return res.status(404).json({ error: "User not found" });
+            userId = userSearch.data.data[0].id;
+        } else {
+            userId = query;
+        }
+
+        // Fetch Detailed User Info
+        const userInfo = await axios.get(`https://users.roblox.com/v1/users/${userId}`);
+        const userThumb = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=true`);
+        const friendsCount = await axios.get(`https://friends.roblox.com/v1/users/${userId}/friends/count`);
+
+        const createdDate = new Date(userInfo.data.created);
+        const accountAgeDays = Math.floor((new Date() - createdDate) / (1000 * 60 * 60 * 24));
+        
+        // BOT DETECTION LOGIC
+        let status = "LIKELY HUMAN";
+        let color = "#32d74b"; // Success Green
+
+        if (accountAgeDays < 7 && friendsCount.data.count === 0) {
+            status = "HIGHLY SUSPICIOUS (POSSIBLE BOT)";
+            color = "#ff453a"; // Danger Red
+        } else if (accountAgeDays < 30 || friendsCount.data.count === 0) {
+            status = "NEW ACCOUNT";
+            color = "#ffcc00"; // Warning Yellow
+        }
+
+        res.json({
+            name: userInfo.data.name,
+            displayName: userInfo.data.displayName,
+            userId: userId,
+            joined: createdDate.toLocaleDateString(),
+            verified: userInfo.data.hasVerifiedBadge,
+            friends: friendsCount.data.count,
+            thumbnail: userThumb.data.data[0]?.imageUrl,
+            integrity: status,
+            integrityColor: color
+        });
 
     } catch (error) {
-        res.status(500).json({ error: "Scan failed. Ensure ID is valid." });
+        res.status(500).json({ error: "Player not found." });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Nexus Server running on port ${PORT}`));
