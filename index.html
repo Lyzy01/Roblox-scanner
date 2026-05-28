@@ -44,7 +44,9 @@
         .val { font-size: 16px; font-weight: 700; margin-top: 5px; }
 
         /* Glass FAQ Accordion Section */
-        .faq-section { margin-top: 20px; width: 100%; animation: buildUp 0.8s ease 0.2s forwards; }
+        .faq-wrapper { display: none; }
+        .faq-wrapper.active { display: block; animation: fadeIn 0.5s ease; }
+        .faq-section { margin-top: 20px; width: 100%; }
         .faq-item { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 12px; overflow: hidden; transition: 0.3s; }
         .faq-question { padding: 18px 22px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
         .faq-answer { padding: 0 22px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; color: var(--text-dim); font-size: 13px; line-height: 1.6; }
@@ -68,8 +70,8 @@
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('gameView', this)">Game Scan</button>
-        <button class="tab-btn" onclick="switchTab('playerView', this)">Player Scan</button>
+        <button class="tab-btn active" onclick="switchTab('gameView', 'gameFaq', this)">Game Scan</button>
+        <button class="tab-btn" onclick="switchTab('playerView', 'playerFaq', this)">Player Scan</button>
     </div>
 
     <!-- GAME VIEW -->
@@ -101,41 +103,67 @@
         </div>
     </div>
 
-    <!-- FAQ SECTION -->
-    <div class="faq-section">
-        <div style="margin-bottom: 15px; text-align: center;">
-            <h3 style="font-size: 11px; letter-spacing: 2px; color: var(--accent); font-weight: 800;">ENGINE DOCUMENTATION</h3>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">How does Player Scan evaluate accounts? <span class="faq-icon">+</span></div>
-            <div class="faq-answer">It cross-references the account's total active creation timeline against behavioral social markers like total friends, followers, and global verification configurations.</div>
-        </div>
+    <div style="margin-top: 20px; margin-bottom: 15px; text-align: center;">
+        <h3 style="font-size: 11px; letter-spacing: 2px; color: var(--accent); font-weight: 800;">ENGINE DOCUMENTATION</h3>
+    </div>
 
-        <div class="faq-item">
-            <div class="faq-question">What signals a "Highly Suspicious" status? <span class="faq-icon">+</span></div>
-            <div class="faq-answer">Accounts created within a critical 7-day threshold possessing entirely empty friend metrics or default configurations heavily mimic systemic bot distributions.</div>
+    <!-- GAME FAQ SECTION -->
+    <div id="gameFaq" class="faq-wrapper active">
+        <div class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question">How does the Safety Score work? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">Nexus analyzes variables such as creator account age relative to visit volume, metadata configuration properties, and public verification records to determine asset safety.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What constitutes a High Risk result? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">High risk ratings are commonly assigned to experiences built by brand new accounts exhibiting anomalous traffic (potential botting) or unvetted structures.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can it evaluate private experiences? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">No. The security parser exclusively evaluates configuration structures exposed publicly through standard application programming interfaces.</div>
+            </div>
         </div>
+    </div>
 
-        <div class="faq-item">
-            <div class="faq-question">Does this look up hidden user details? <span class="faq-icon">+</span></div>
-            <div class="faq-answer">No. Nexus strictly reads public architecture points exposed through the standardized open infrastructure layer of the official Roblox Web APIs.</div>
+    <!-- PLAYER FAQ SECTION -->
+    <div id="playerFaq" class="faq-wrapper">
+        <div class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question">How does Player Scan evaluate accounts? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">It cross-references the account's total active creation timeline against behavioral social markers like total friends, followers, and global verification configurations.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What signals a "Highly Suspicious" status? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">Accounts created within a critical 7-day threshold possessing entirely empty friend metrics or default configurations heavily mimic systemic bot distributions.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Does this look up hidden user details? <span class="faq-icon">+</span></div>
+                <div class="faq-answer">No. Nexus strictly reads public architecture points exposed through the standardized open infrastructure layer of the official Roblox Web APIs.</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Tab Switches
-    function switchTab(viewId, btn) {
+    // Tab Switches (Both views and corresponding FAQs)
+    function switchTab(viewId, faqId, btn) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.faq-wrapper').forEach(f => f.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
         document.getElementById(viewId).classList.add('active');
+        document.getElementById(faqId).classList.add('active');
         btn.classList.add('active');
     }
 
     // FAQ Accordion Handlers
     document.querySelectorAll('.faq-question').forEach(q => {
         q.addEventListener('click', () => {
+            // Close other open accordion items in the active view for a cleaner look
+            const currentlyActive = q.closest('.faq-section').querySelector('.faq-item.active');
+            if(currentlyActive && currentlyActive !== q.parentElement) {
+                currentlyActive.classList.remove('active');
+            }
             q.parentElement.classList.toggle('active');
         });
     });
